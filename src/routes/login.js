@@ -8,16 +8,15 @@ const loginRouter = new Router({
 });
 
 loginRouter.post("/", koaBody(), async (ctx) => {
-  const { login, password } = ctx.request.body;
+  const { username, password } = ctx.request.body;
 
   try {
-    // Authenticate user using PocketBase
     const authData = await ctx.pb
       .collection("users")
-      .authWithPassword(login, password);
+      .authWithPassword(username, password);
 
     // Set the JWT token in an HttpOnly cookie
-    ctx.cookies.set("JWT_COOKIE_NAME", authData.token, {
+    ctx.cookies.set(JWT_COOKIE_NAME, authData.token, {
       httpOnly: true,
       secure: false, // Set to true in production with HTTPS
       sameSite: "lax",
@@ -29,6 +28,7 @@ loginRouter.post("/", koaBody(), async (ctx) => {
       user: authData.user,
     };
   } catch (error) {
+    console.log(error);
     ctx.status = 401;
     ctx.body = { message: "Invalid email or password", error: error.message };
   }

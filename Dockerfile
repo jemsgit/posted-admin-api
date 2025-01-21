@@ -1,15 +1,25 @@
-FROM node:20
+FROM alpine:latest
 
-WORKDIR /usr/src/app
+ARG PB_VERSION=0.24.4
 
-COPY package.json ./
-COPY config.js ./
+RUN apk add --no-cache \
+    unzip \
+    ca-certificates
 
-RUN npm install
+# download and unzip PocketBase
+ADD https://github.com/pocketbase/pocketbase/releases/download/v${PB_VERSION}/pocketbase_${PB_VERSION}_linux_amd64.zip /tmp/pb.zip
+RUN unzip /tmp/pb.zip -d /pb/
 
-ADD dist dist
-ADD src/server src/server
+# copy current db data to pb_data
+COPY pocketbase/pb_data /pb/pb_data
 
-EXPOSE 3000
+# uncomment to copy the local pb_migrations dir into the image
+# COPY ./pb_migrations /pb/pb_migrations
 
-CMD [ "node", "src/server/server.js" ]
+# uncomment to copy the local pb_hooks dir into the image
+# COPY ./pb_hooks /pb/pb_hooks
+
+EXPOSE 8090
+
+# start PocketBase
+CMD ["/pb/pocketbase", "serve", "--http=0.0.0.0:8090"]

@@ -1,12 +1,9 @@
-version: "2"
 services:
-  app:
-    image: "jemjem7/poster:latest"
+  pocketbase:
+    image: pocketbase-image
+    container_name: pocketbase
     ports:
-      - "90:3000"
+      - "8091:8090"
     volumes:
-      - /home/jem/projects/poster:/usr/src/app/poster
-    environment:
-      - DB_LOGIN=${DB_LOGIN}
-      - DB_PASS=${DB_PASS}
-      - TEST_ENV=123
+      - ./pocketbase/pb_data:/pb/pb_data
+

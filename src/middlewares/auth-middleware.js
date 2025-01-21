@@ -2,7 +2,6 @@
 
 async function authMiddleware(ctx, next) {
   const token = ctx.cookies.get("jwt", { httpOnly: true });
-
   if (!token) {
     ctx.throw(401, "Not authorized");
   }
