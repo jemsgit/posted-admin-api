@@ -5,6 +5,7 @@ import {
   ChannelDTO,
   ChannelsDTO,
   RequestContentDTO,
+  RequestUpdateSettingsDTO,
   ResponseContentDTO,
 } from "../models/channel";
 import posterFetcher from "../lib/posterFetcher";
@@ -12,6 +13,10 @@ import {
   channelInfoMapper,
   channelsListInfoMapper,
 } from "../adapters/channelInfoAdapter";
+import {
+  GrabberContentResponseDTO,
+  GrabberFilesResponse,
+} from "../models/grabber";
 
 async function getChannelInfoById(
   channelId: string
@@ -84,21 +89,75 @@ async function updateChannelContentById(
   }
 }
 
+async function updateChannelSettings(
+  channelId: string,
+  params: any
+): Promise<string | { error: boolean }> {
+  try {
+    await posterFetcher.patch<RequestUpdateSettingsDTO, boolean>(
+      `/api/channels/info/${channelId}/`,
+      {
+        params,
+      }
+    );
+    return "Ok";
+  } catch (e) {
+    console.log(e);
+    return {
+      error: true,
+    };
+  }
+}
+
 async function copyContentToChannel(
   channelId: string,
   type: string,
   content: string
 ): Promise<string | { error: boolean }> {
   try {
-    let result = await posterFetcher.patch<
-      RequestContentDTO,
-      ResponseContentDTO
-    >(`/api/channels/copy-content/${channelId}/${type}`, {
-      channelId,
-      type,
-      content,
-    });
+    await posterFetcher.patch<RequestContentDTO, ResponseContentDTO>(
+      `/api/channels/copy-content/${channelId}/${type}`,
+      {
+        channelId,
+        type,
+        content,
+      }
+    );
     return "Ok";
+  } catch (e) {
+    console.log(e);
+    return {
+      error: true,
+    };
+  }
+}
+
+async function getChannelGrabber(
+  channelId: string
+): Promise<GrabberFilesResponse | { error: boolean }> {
+  try {
+    let result = await posterFetcher.get<GrabberFilesResponse>(
+      `/api/channels/grabbers/${channelId}`
+    );
+    return result.data;
+  } catch (e) {
+    console.log(e);
+    return {
+      error: true,
+    };
+  }
+}
+
+async function testChannelGrabber(
+  channelId: string
+): Promise<GrabberContentResponseDTO | { error: boolean }> {
+  try {
+    let result = await posterFetcher.post<unknown, GrabberContentResponseDTO>(
+      `/api/channels/test-grab/${channelId}`,
+      {}
+    );
+    console.log(result);
+    return result.data;
   } catch (e) {
     console.log(e);
     return {
@@ -113,4 +172,7 @@ module.exports = {
   getChannelContentById,
   updateChannelContentById,
   copyContentToChannel,
+  updateChannelSettings,
+  getChannelGrabber,
+  testChannelGrabber,
 };

@@ -25,7 +25,6 @@ export function channelsListInfoMapper(channelsInfo: ChannelsDTO) {
   let channelInfo: Channel[] = [];
   Object.keys(channels).forEach((key) => {
     const channel = channels[key];
-    console.log(channel);
     const grabber = grabbers[key];
     channelInfo.push(channelInfoMapper({ channel, grabber }));
   });

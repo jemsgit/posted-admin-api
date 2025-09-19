@@ -1,22 +1,28 @@
 /* eslint-disable no-unreachable */
 
 async function authMiddleware(ctx, next) {
+  if (process.env.NO_AUTH === "1") {
+    ctx.state.user = { name: 123 };
+
+    await next();
+    return;
+  }
   const token = ctx.cookies.get("jwt", { httpOnly: true });
   if (!token) {
-    ctx.throw(401, "Not authorized");
+    ctx.status = 401;
+    ctx.body = { message: "Not authorized" };
+    return;
   }
 
   try {
-    // Use ctx.pb to validate the token
-    const user = await ctx.pb.collection("users").authRefresh(token);
-
+    const user = await ctx.db.refreshAuth(token);
     // Attach the user to the context
     ctx.state.user = user;
 
     await next();
   } catch (error) {
     ctx.status = 401;
-    ctx.body = { message: "Invalid or expired token" };
+    ctx.body = { message: "Invalid or expired token", error };
   }
 }
 

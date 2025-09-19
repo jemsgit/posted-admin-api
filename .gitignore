@@ -3,4 +3,5 @@
 /pocketbase
 
 .env
+.env.local
 deploy.sh

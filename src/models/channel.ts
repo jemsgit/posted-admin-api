@@ -1,6 +1,11 @@
-type PostingType = "link" | "video";
+type PostingType = "links" | "video" | "custom";
 type LoadImageConfig = boolean | "random";
-export type ContentType = "draft" | "main" | "result";
+export type ContentType =
+  | "draft"
+  | "main"
+  | "result"
+  | "rss-list"
+  | "rss-result";
 
 export interface Channel {
   username: string;
@@ -53,14 +58,36 @@ export interface ChannelDTO {
   grabber?: GrabberInfoDTO;
 }
 
+export interface GrabberContentDTO {
+  content: string[];
+}
+
 export interface RequestContentDTO {
   channelId: string;
   type: string;
   content: string;
 }
 
+export interface RequestUpdateSettingsDTO {
+  params: {
+    graberSettings?: {
+      times?: string;
+      hasDraft?: boolean;
+    };
+    postingSettings?: {
+      type?: PostingType;
+      times?: string[];
+      loadImage?: LoadImageConfig;
+    };
+  };
+}
+
 export interface ResponseContentDTO {
   channelId: string;
   type: string;
   content: string;
+}
+
+export interface ResponseUpdateSettingsDTO {
+  success: boolean;
 }

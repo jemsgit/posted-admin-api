@@ -1,6 +1,5 @@
 import axios, { Axios, AxiosRequestConfig, AxiosResponse } from "axios";
 import config from "../config";
-import { Channel } from "../models/channel";
 
 class PosterFetcher {
   fetcher: Axios;

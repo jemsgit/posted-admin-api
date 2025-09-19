@@ -1,9 +1,15 @@
-services:
-  pocketbase:
-    image: pocketbase-image
-    container_name: pocketbase
-    ports:
-      - "8091:8090"
-    volumes:
-      - ./pocketbase/pb_data:/pb/pb_data
+version: "2"
 
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: poster-admin-api
+    volumes:
+      - /proc/meminfo:/proc/meminfo:ro
+      - ./static:/static
+    ports:
+      - "3005:3005"
+    env_file:
+      - .env

@@ -7,6 +7,9 @@ const {
   getChannelContentById,
   updateChannelContentById,
   copyContentToChannel,
+  updateChannelSettings,
+  getChannelGrabber,
+  testChannelGrabber,
 } = require("../services/channels");
 
 const channelsRouter = new Router({
@@ -18,27 +21,32 @@ channelsRouter.get("/info", koaBody(), authMiddleware, async (ctx) => {
   ctx.body = await getChannelsList();
 });
 
-channelsRouter.get("/info/:channelId", koaBody(), async (ctx) => {
-  const { channelId } = ctx.params;
-  const channelData = await getChannelInfoById(channelId);
+channelsRouter.get(
+  "/info/:channelId",
+  koaBody(),
+  authMiddleware,
+  async (ctx) => {
+    const { channelId } = ctx.params;
+    const channelData = await getChannelInfoById(channelId);
 
-  if (!channelData) {
-    ctx.status = 404;
-    ctx.body = "Not found";
-    return;
+    if (!channelData) {
+      ctx.status = 404;
+      ctx.body = "Not found";
+      return;
+    }
+
+    if (channelData.error) {
+      ctx.status = 400;
+      ctx.body = "Bad request";
+      return;
+    }
+
+    ctx.status = 200;
+    ctx.body = channelData;
   }
+);
 
-  if (channelData.error) {
-    ctx.status = 400;
-    ctx.body = "Bad request";
-    return;
-  }
-
-  ctx.status = 200;
-  ctx.body = channelData;
-});
-
-channelsRouter.get("/content", koaBody(), async (ctx) => {
+channelsRouter.get("/content", koaBody(), authMiddleware, async (ctx) => {
   const { channelId, type } = ctx.query;
   const channelData = await getChannelContentById(channelId, type);
 
@@ -59,15 +67,23 @@ channelsRouter.get("/content", koaBody(), async (ctx) => {
 });
 
 channelsRouter.patch(
-  "/info/:channelId/update",
+  "/info/:channelId",
   koaBody(),
   authMiddleware,
   async (ctx) => {
     const { channelId } = ctx.request.params;
-    const info = ctx.request.body;
+    const { params } = ctx.request.body;
+
+    if (!params) {
+      ctx.status = 400;
+      ctx.body = "Bad request";
+      return;
+    }
+
+    await updateChannelSettings(channelId, params);
 
     ctx.status = 200;
-    ctx.body = "Not implemented";
+    ctx.body = "Ok";
   }
 );
 
@@ -79,34 +95,16 @@ channelsRouter.patch(
     const { channelId, type } = ctx.request.params;
     const { content } = ctx.request.body;
 
-    const res = copyContentToChannel(channelId, type, content);
+    const res = await copyContentToChannel(channelId, type, content);
     ctx.status = 200;
     ctx.body = "Ok";
-  }
-);
-
-channelsRouter.get(
-  "/api/channels/content",
-  koaBody(),
-  authMiddleware,
-  async (ctx) => {
-    const { channelId, type } = ctx.request.query;
-    const result = await getChannelContentById(channelId, type);
-
-    if (result) {
-      ctx.status = 200;
-      ctx.body = "Ok";
-    } else {
-      ctx.status = 400;
-      ctx.body = "Fail";
-    }
   }
 );
 
 channelsRouter.patch("/content", koaBody(), authMiddleware, async (ctx) => {
   const { channelId, type, content } = ctx.request.body;
   console.log(content);
-  const result = updateChannelContentById(channelId, type, content);
+  const result = await updateChannelContentById(channelId, type, content);
 
   if (result) {
     ctx.status = 200;
@@ -116,5 +114,42 @@ channelsRouter.patch("/content", koaBody(), authMiddleware, async (ctx) => {
     ctx.body = "Fail";
   }
 });
+
+channelsRouter.get(
+  "/grabber/:channelId",
+  koaBody(),
+  authMiddleware,
+  async (ctx) => {
+    const { channelId } = ctx.request.params;
+
+    const result = await getChannelGrabber(channelId);
+
+    if (result) {
+      ctx.status = 200;
+      ctx.body = result;
+    } else {
+      ctx.status = 400;
+      ctx.body = "Fail";
+    }
+  }
+);
+
+channelsRouter.post(
+  "/test-grab/:channelId",
+  koaBody(),
+  authMiddleware,
+  async (ctx) => {
+    const { channelId } = ctx.request.params;
+    const result = await testChannelGrabber(channelId);
+
+    if (result) {
+      ctx.status = 200;
+      ctx.body = result;
+    } else {
+      ctx.status = 400;
+      ctx.body = "Fail";
+    }
+  }
+);
 
 module.exports = channelsRouter;
