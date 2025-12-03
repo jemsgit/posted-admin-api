@@ -11,6 +11,7 @@ class PosterFetcher {
       baseURL,
     });
     this.token = Buffer.from(token).toString("base64");
+    console.log(this.token);
   }
 
   get<T>(

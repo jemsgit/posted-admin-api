@@ -36,6 +36,7 @@ async function getChannelInfoById(
 async function getChannelsList(): Promise<Channel[] | { error: boolean }> {
   try {
     let result = await posterFetcher.get<ChannelsDTO>("/api/channels/info");
+
     return channelsListInfoMapper(result.data);
   } catch (e) {
     console.log(e);

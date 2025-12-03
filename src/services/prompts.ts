@@ -7,12 +7,12 @@ const db = require("../db/pbDb").default;
 
 async function getAllPrompts() {
   const records: Prompt[] = await db.getAllPrompts();
-  return records.map((r) => ({ id: r.id, text: r.text }));
+  return records.map((r) => ({ id: r.id, text: r.text, title: r.title }));
 }
 
-async function addPrompt(text: string) {
-  const record = await db.addPrompt(text);
-  return { id: record.id, text: record.text };
+async function addPrompt(text: string, title?: string) {
+  const record = await db.addPrompt(text, title);
+  return { id: record.id, text: record.text, title: record.title };
 }
 
 async function deletePrompt(id: string) {

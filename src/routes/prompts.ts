@@ -1,4 +1,6 @@
 import { Context } from "koa";
+import { PromptDTO } from "../models/prompt";
+import { ensurePbAdminAuth } from "../middlewares/pb-auth";
 
 const Router = require("koa-router");
 const koaBody = require("koa-bodyparser");
@@ -13,29 +15,46 @@ const promptsRouter = new Router({
   prefix: "/api/prompts",
 });
 
-// Get all prompts
-promptsRouter.get("/", koaBody(), authMiddleware, async (ctx: Context) => {
-  ctx.status = 200;
-  ctx.body = await getAllPrompts();
-});
+interface BodyContext extends Context {
+  request: Context["request"] & { body: PromptDTO };
+}
 
-promptsRouter.post("/", koaBody(), authMiddleware, async (ctx: Context) => {
-  const { text } = ctx.request.body as { text: string };
-  if (!text) {
-    ctx.status = 400;
-    ctx.body = { error: "Text is required" };
-    return;
+// Get all prompts
+promptsRouter.get(
+  "/",
+  koaBody(),
+  authMiddleware,
+  ensurePbAdminAuth,
+  async (ctx: Context) => {
+    ctx.status = 200;
+    ctx.body = await getAllPrompts();
   }
-  const prompt = await addPrompt(text);
-  ctx.status = 201;
-  ctx.body = prompt;
-});
+);
+
+promptsRouter.post(
+  "/",
+  koaBody(),
+  authMiddleware,
+  ensurePbAdminAuth,
+  async (ctx: BodyContext) => {
+    const { text, title } = ctx.request.body;
+    if (!text) {
+      ctx.status = 400;
+      ctx.body = { error: "Text is required" };
+      return;
+    }
+    const prompt = await addPrompt(text, title);
+    ctx.status = 201;
+    ctx.body = prompt;
+  }
+);
 
 // Delete a prompt
 promptsRouter.delete(
   "/:id",
   koaBody(),
   authMiddleware,
+  ensurePbAdminAuth,
   async (ctx: Context) => {
     const { id } = ctx.params;
     await deletePrompt(id);

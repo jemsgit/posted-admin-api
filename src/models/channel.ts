@@ -38,6 +38,7 @@ interface ChannelInfoDTO {
   times: string[];
   loadImage: LoadImageConfig;
   channelId: string;
+  description?: string;
 }
 
 interface GrabberInfoDTO {

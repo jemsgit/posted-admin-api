@@ -10,13 +10,16 @@ const channelsRouter = require("./routes/channels");
 const promptsRouter = require("./routes/prompts");
 const suggestionRouter = require("./routes/suggestion").default;
 const utilsRouter = require("./routes/utils").default;
+const botsRouter = require("./routes/bots").default;
+
+db.init();
 
 const app = new Koa();
 
 app.context.db = db;
 app.use(
   cors({
-    exposeHeaders: "Cookie",
+    origin: "http://localhost:5173",
     credentials: true,
   })
 );
@@ -26,7 +29,8 @@ app
   .use(channelsRouter.routes())
   .use(promptsRouter.routes())
   .use(suggestionRouter.routes())
-  .use(utilsRouter.routes());
+  .use(utilsRouter.routes())
+  .use(botsRouter.routes());
 
 app.listen(process.env.PORT || 3001, () => {
   console.log("server started");

@@ -11,20 +11,28 @@ const {
   getChannelGrabber,
   testChannelGrabber,
 } = require("../services/channels");
+const { ensurePbAdminAuth } = require("../middlewares/pb-auth");
 
 const channelsRouter = new Router({
   prefix: "/api/channels",
 });
 
-channelsRouter.get("/info", koaBody(), authMiddleware, async (ctx) => {
-  ctx.status = 200;
-  ctx.body = await getChannelsList();
-});
+channelsRouter.get(
+  "/info",
+  koaBody(),
+  authMiddleware,
+  ensurePbAdminAuth,
+  async (ctx) => {
+    ctx.status = 200;
+    ctx.body = await getChannelsList();
+  }
+);
 
 channelsRouter.get(
   "/info/:channelId",
   koaBody(),
   authMiddleware,
+  ensurePbAdminAuth,
   async (ctx) => {
     const { channelId } = ctx.params;
     const channelData = await getChannelInfoById(channelId);
@@ -46,30 +54,37 @@ channelsRouter.get(
   }
 );
 
-channelsRouter.get("/content", koaBody(), authMiddleware, async (ctx) => {
-  const { channelId, type } = ctx.query;
-  const channelData = await getChannelContentById(channelId, type);
+channelsRouter.get(
+  "/content",
+  koaBody(),
+  authMiddleware,
+  ensurePbAdminAuth,
+  async (ctx) => {
+    const { channelId, type } = ctx.query;
+    const channelData = await getChannelContentById(channelId, type);
 
-  if (!channelData) {
-    ctx.status = 404;
-    ctx.body = "Not found";
-    return;
+    if (!channelData) {
+      ctx.status = 404;
+      ctx.body = "Not found";
+      return;
+    }
+
+    if (channelData.error) {
+      ctx.status = 400;
+      ctx.body = "Bad request";
+      return;
+    }
+
+    ctx.status = 200;
+    ctx.body = channelData;
   }
-
-  if (channelData.error) {
-    ctx.status = 400;
-    ctx.body = "Bad request";
-    return;
-  }
-
-  ctx.status = 200;
-  ctx.body = channelData;
-});
+);
 
 channelsRouter.patch(
   "/info/:channelId",
   koaBody(),
   authMiddleware,
+  ensurePbAdminAuth,
   async (ctx) => {
     const { channelId } = ctx.request.params;
     const { params } = ctx.request.body;
@@ -91,6 +106,7 @@ channelsRouter.patch(
   "/copy-content/:channelId/:type",
   koaBody(),
   authMiddleware,
+  ensurePbAdminAuth,
   async (ctx) => {
     const { channelId, type } = ctx.request.params;
     const { content } = ctx.request.body;
@@ -101,24 +117,31 @@ channelsRouter.patch(
   }
 );
 
-channelsRouter.patch("/content", koaBody(), authMiddleware, async (ctx) => {
-  const { channelId, type, content } = ctx.request.body;
-  console.log(content);
-  const result = await updateChannelContentById(channelId, type, content);
+channelsRouter.patch(
+  "/content",
+  koaBody(),
+  authMiddleware,
+  ensurePbAdminAuth,
+  async (ctx) => {
+    const { channelId, type, content } = ctx.request.body;
+    console.log(content);
+    const result = await updateChannelContentById(channelId, type, content);
 
-  if (result) {
-    ctx.status = 200;
-    ctx.body = "Ok";
-  } else {
-    ctx.status = 400;
-    ctx.body = "Fail";
+    if (result) {
+      ctx.status = 200;
+      ctx.body = "Ok";
+    } else {
+      ctx.status = 400;
+      ctx.body = "Fail";
+    }
   }
-});
+);
 
 channelsRouter.get(
   "/grabber/:channelId",
   koaBody(),
   authMiddleware,
+  ensurePbAdminAuth,
   async (ctx) => {
     const { channelId } = ctx.request.params;
 
@@ -138,6 +161,7 @@ channelsRouter.post(
   "/test-grab/:channelId",
   koaBody(),
   authMiddleware,
+  ensurePbAdminAuth,
   async (ctx) => {
     const { channelId } = ctx.request.params;
     const result = await testChannelGrabber(channelId);

@@ -2,14 +2,19 @@ import { Context } from "koa";
 import koaBody from "koa-body";
 import send from "koa-send";
 import fs from "fs";
-import path from "path";
+import path, { parse } from "path";
 import authMiddleware from "../middlewares/auth-middleware";
 import axios from "axios";
 import Router from "koa-router";
 import * as cheerio from "cheerio";
 
-import { JSDOM } from "jsdom";
-import { Readability } from "@mozilla/readability";
+import {
+  getDescription,
+  getImage,
+  getPage,
+  parseArticle,
+} from "../services/content-graber";
+import { ensurePbAdminAuth } from "../middlewares/pb-auth";
 
 const utilsRouter = new Router({
   prefix: "/api/utils",
@@ -56,6 +61,7 @@ utilsRouter.post(
     },
   }),
   authMiddleware,
+  ensurePbAdminAuth,
   async (ctx: Context) => {
     const files = ctx.request.files;
     if (!files || !files.file) {
@@ -198,30 +204,17 @@ utilsRouter.get("/fetch-images", async (ctx) => {
       return;
     }
 
-    // ✅ Fetch HTML
-    const htmlResponse = await axios.get(url, {
-      headers: {
-        "User-Agent": "Mozilla/5.0 (compatible; ImageFetcherBot/1.0)",
-      },
-      timeout: 10000,
-    });
-    const body = htmlResponse.data;
-    const $ = cheerio.load(body);
-
-    // 1. Try og:image
-    const ogImage = $("meta[property='og:image']").attr("content");
-    const description = $("meta[property='og:description']").attr("content");
-    if (ogImage) {
-      try {
-        const res = await axios.get(ogImage, { responseType: "arraybuffer" });
-        const base64 = Buffer.from(res.data).toString("base64");
-        images.push({ url: ogImage, base64 });
-      } catch {
-        images.push({ url: ogImage, base64: null });
-      }
+    const { selector: $, body } = await getPage(url);
+    if (!$ || !body) {
+      throw new Error("Failed to load page");
     }
 
-    // 2. Fallback: grab a few <img> from main/article/content
+    const ogImage = await getImage($);
+    const description = getDescription($);
+    if (ogImage) {
+      const base64 = Buffer.from(ogImage.response.data).toString("base64");
+      images.push({ url: ogImage.url, base64 });
+    }
 
     const selectors = ["main img", "article img", ".content img"];
     let found: string[] = [];
@@ -246,11 +239,9 @@ utilsRouter.get("/fetch-images", async (ctx) => {
       }
     }
 
-    const dom = new JSDOM(body, { url });
-    const reader = new Readability(dom.window.document);
-    const article = reader.parse();
+    const article = await parseArticle(url, body);
 
-    ctx.body = { images, article: article?.textContent, description };
+    ctx.body = { images, article, description };
   } catch (err) {
     console.error(err);
     ctx.status = 500;

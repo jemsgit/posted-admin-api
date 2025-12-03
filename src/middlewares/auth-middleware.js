@@ -1,28 +1,31 @@
 /* eslint-disable no-unreachable */
 
+const jwtUtils = require("../utils/jwt");
+
+const { verifyJWT } = jwtUtils;
+
 async function authMiddleware(ctx, next) {
   if (process.env.NO_AUTH === "1") {
-    ctx.state.user = { name: 123 };
-
-    await next();
-    return;
+    ctx.state.user = { id: "dev", name: 123 };
+    return next();
   }
-  const token = ctx.cookies.get("jwt", { httpOnly: true });
+
+  const token = ctx.cookies.get("jwt");
+
   if (!token) {
     ctx.status = 401;
-    ctx.body = { message: "Not authorized" };
+    ctx.body = { message: "No token" };
     return;
   }
 
   try {
-    const user = await ctx.db.refreshAuth(token);
-    // Attach the user to the context
-    ctx.state.user = user;
-
-    await next();
-  } catch (error) {
+    const decodedUser = verifyJWT(token);
+    ctx.state.user = decodedUser;
+    return next();
+  } catch (err) {
+    console.log(err);
     ctx.status = 401;
-    ctx.body = { message: "Invalid or expired token", error };
+    ctx.body = { message: "Invalid token" };
   }
 }
 
