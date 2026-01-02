@@ -97,6 +97,7 @@ class DataBase {
         return {
           id: bot.id,
           name: bot.name,
+          username: bot.username,
           apiUrl: bot.apiUrl,
           token: bot.token,
           createdAt: bot.created,

@@ -9,6 +9,8 @@ export type ContentType =
 
 export interface Channel {
   username: string;
+  description?: string;
+  active: boolean;
   graberSettings?: {
     modulePath: string;
     times: string;
@@ -39,6 +41,7 @@ interface ChannelInfoDTO {
   loadImage: LoadImageConfig;
   channelId: string;
   description?: string;
+  active: boolean;
 }
 
 interface GrabberInfoDTO {

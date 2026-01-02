@@ -25,9 +25,10 @@ export interface BotConfig {
 export interface Bot {
   id: string;
   name: string;
+  username: string;
   apiUrl: string;
   token: string;
-  config: BotConfig;
+  config?: BotConfig;
   createdAt: Date;
   updatedAt: Date;
 }

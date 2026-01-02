@@ -120,6 +120,7 @@ loginRouter.post("/", koaBody(), async (ctx: Context) => {
       },
     };
   } catch (error) {
+    console.log("Login error:", error);
     ctx.status = 401;
     ctx.body = { message: "Invalid email or password" };
   }

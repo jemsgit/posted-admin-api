@@ -2,10 +2,11 @@ import { Channel, ChannelDTO, ChannelsDTO } from "../models/channel";
 
 export function channelInfoMapper(channelInfo: ChannelDTO) {
   const { channel, grabber } = channelInfo;
-  const { times, loadImage, type, channelId, description } = channel;
+  const { times, loadImage, type, channelId, description, active } = channel;
   return {
     username: channelId,
     description,
+    active,
     postingSettings: {
       type,
       times,

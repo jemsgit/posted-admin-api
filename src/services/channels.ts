@@ -18,7 +18,7 @@ import {
   GrabberFilesResponse,
 } from "../models/grabber";
 
-async function getChannelInfoById(
+export async function getChannelInfoById(
   channelId: string
 ): Promise<Channel | { error: boolean }> {
   try {
@@ -33,7 +33,9 @@ async function getChannelInfoById(
   }
 }
 
-async function getChannelsList(): Promise<Channel[] | { error: boolean }> {
+export async function getChannelsList(): Promise<
+  Channel[] | { error: boolean }
+> {
   try {
     let result = await posterFetcher.get<ChannelsDTO>("/api/channels/info");
 
@@ -46,7 +48,7 @@ async function getChannelsList(): Promise<Channel[] | { error: boolean }> {
   }
 }
 
-async function getChannelContentById(
+export async function getChannelContentById(
   channelId: string,
   type: string
 ): Promise<ResponseContentDTO | { error: boolean }> {
@@ -67,7 +69,7 @@ async function getChannelContentById(
   }
 }
 
-async function updateChannelContentById(
+export async function updateChannelContentById(
   channelId: string,
   type: string,
   content: string
@@ -90,7 +92,7 @@ async function updateChannelContentById(
   }
 }
 
-async function updateChannelSettings(
+export async function updateChannelSettings(
   channelId: string,
   params: any
 ): Promise<string | { error: boolean }> {
@@ -110,7 +112,7 @@ async function updateChannelSettings(
   }
 }
 
-async function copyContentToChannel(
+export async function copyContentToChannel(
   channelId: string,
   type: string,
   content: string
@@ -133,7 +135,7 @@ async function copyContentToChannel(
   }
 }
 
-async function getChannelGrabber(
+export async function getChannelGrabber(
   channelId: string
 ): Promise<GrabberFilesResponse | { error: boolean }> {
   try {
@@ -149,7 +151,7 @@ async function getChannelGrabber(
   }
 }
 
-async function testChannelGrabber(
+export async function testChannelGrabber(
   channelId: string
 ): Promise<GrabberContentResponseDTO | { error: boolean }> {
   try {
@@ -167,13 +169,37 @@ async function testChannelGrabber(
   }
 }
 
-module.exports = {
-  getChannelInfoById,
-  getChannelsList,
-  getChannelContentById,
-  updateChannelContentById,
-  copyContentToChannel,
-  updateChannelSettings,
-  getChannelGrabber,
-  testChannelGrabber,
-};
+export async function setChannelActiveStatus(
+  channelId: string,
+  isActive: boolean
+): Promise<string | { error: boolean }> {
+  try {
+    await posterFetcher.post<{ active: boolean }, void>(
+      `/api/channels/${channelId}/set-active`,
+      { active: isActive }
+    );
+    return "Ok";
+  } catch (e) {
+    console.log(e);
+    return {
+      error: true,
+    };
+  }
+}
+
+export async function forcePostForChannel(
+  channelId: string
+): Promise<string | { error: boolean }> {
+  try {
+    await posterFetcher.post<any, void>(
+      `/api/channels/${channelId}/force-post`,
+      {}
+    );
+    return "Ok";
+  } catch (e) {
+    console.log(e);
+    return {
+      error: true,
+    };
+  }
+}
