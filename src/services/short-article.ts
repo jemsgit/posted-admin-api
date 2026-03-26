@@ -5,7 +5,7 @@ import MarkdownIt from "markdown-it";
 import { AxiosResponse } from "axios";
 import { URL } from "url";
 
-import { getImage, getPage, parseArticle } from "./content-graber";
+import { getImage, getPage, getTitle, parseArticle } from "./content-graber";
 import { askGeminiAI } from "./ai";
 import { ArticleData, Article } from "../models/ghost";
 
@@ -69,10 +69,11 @@ export async function addArticle({
   return post;
 }
 
-export async function getArticleShortVersion(url: string, title: string) {
+export async function getArticleShortVersion(url: string) {
   const { selector, body } = await getPage(url);
   if (!body || !selector) return null;
   try {
+    let title = getTitle(selector) || "Оригинальная статья";
     let article = await parseArticle(url, body);
     let image = await getImage(selector);
     let imageUrl = null;
@@ -81,7 +82,7 @@ export async function getArticleShortVersion(url: string, title: string) {
     }
 
     let res = await askGeminiAI(
-      "Summarize the article in 12-15 sentences in russian. If it needed you can add code samples and other markdown features. Result should be in markdown format for Ghost blog, add in the end link " +
+      "Summarize the article in 12-15 sentences in russian. If it needed you can add code samples and other markdown features. Result should be in markdown format for Ghost blog. In the end of article add link to original article " +
         url +
         " with text 'Оригинал статьи: " +
         title +

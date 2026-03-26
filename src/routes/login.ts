@@ -74,8 +74,9 @@ loginRouter.post("/", koaBody(), async (ctx: Context) => {
   };
   try {
     const authData = await ctx.db.authUserWithPassword(username, password);
-
+    console.log(authData);
     const user = authData.record;
+    console.log(user);
 
     const refreshToken = createJWT(
       {
@@ -83,6 +84,8 @@ loginRouter.post("/", koaBody(), async (ctx: Context) => {
       },
       { expiresIn: "7d" }
     );
+
+    console.log(refreshToken);
 
     await ctx.db.updateUser(user.id, {
       refreshTokens: [...(user.refreshTokens ?? []), refreshToken],
@@ -96,6 +99,9 @@ loginRouter.post("/", koaBody(), async (ctx: Context) => {
       },
       { expiresIn: "15m" }
     );
+
+    console.log("accessToken");
+    console.log(accessToken);
 
     ctx.cookies.set(JWT_COOKIE_NAME, accessToken, {
       httpOnly: true,
@@ -120,6 +126,8 @@ loginRouter.post("/", koaBody(), async (ctx: Context) => {
       },
     };
   } catch (error) {
+    console.log(error);
+    console.log("error");
     console.log("Login error:", error);
     ctx.status = 401;
     ctx.body = { message: "Invalid email or password" };

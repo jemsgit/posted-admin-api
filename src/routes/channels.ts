@@ -10,6 +10,7 @@ import {
   getChannelsList,
   getChannelContentById,
   updateChannelContentById,
+  replaceChannelContentById,
   copyContentToChannel,
   updateChannelSettings,
   getChannelGrabber,
@@ -41,7 +42,7 @@ channelsRouter.get(
   async (ctx) => {
     ctx.status = 200;
     ctx.body = await getChannelsList();
-  }
+  },
 );
 
 /* ============================
@@ -50,13 +51,13 @@ channelsRouter.get(
 channelsRouter.get(
   "/info/:channelId",
   bodyParser(),
-  authMiddleware,
-  ensurePbAdminAuth,
+  // authMiddleware,
+  // ensurePbAdminAuth,
   async (ctx) => {
     const { channelId } = ctx.params;
 
     const channelData = await getChannelInfoById(channelId);
-
+    console.log(channelData);
     if (!channelData) {
       ctx.status = 404;
       ctx.body = "Not found";
@@ -71,7 +72,7 @@ channelsRouter.get(
 
     ctx.status = 200;
     ctx.body = channelData;
-  }
+  },
 );
 
 /* ============================
@@ -110,7 +111,7 @@ channelsRouter.get(
 
     ctx.status = 200;
     ctx.body = channelData;
-  }
+  },
 );
 
 /* ============================
@@ -137,7 +138,7 @@ channelsRouter.patch(
 
     ctx.status = 200;
     ctx.body = "Ok";
-  }
+  },
 );
 
 /* ============================
@@ -158,7 +159,7 @@ channelsRouter.patch(
 
     ctx.status = 200;
     ctx.body = "Ok";
-  }
+  },
 );
 
 /* ============================
@@ -180,7 +181,29 @@ channelsRouter.patch(
 
     ctx.status = result ? 200 : 400;
     ctx.body = result ? "Ok" : "Fail";
-  }
+  },
+);
+
+/* ============================
+   PUT /content
+============================ */
+channelsRouter.put(
+  "/content",
+  bodyParser(),
+  authMiddleware,
+  ensurePbAdminAuth,
+  async (ctx) => {
+    const { channelId, type, content } = ctx.request.body as {
+      channelId: string;
+      type: string;
+      content: string;
+    };
+
+    const result = await replaceChannelContentById(channelId, type, content);
+
+    ctx.status = result ? 200 : 400;
+    ctx.body = result ? "Ok" : "Fail";
+  },
 );
 
 /* ============================
@@ -198,7 +221,7 @@ channelsRouter.get(
 
     ctx.status = result ? 200 : 400;
     ctx.body = result ?? "Fail";
-  }
+  },
 );
 
 /* ============================
@@ -216,7 +239,7 @@ channelsRouter.post(
 
     ctx.status = result ? 200 : 400;
     ctx.body = result ?? "Fail";
-  }
+  },
 );
 
 /* ============================
@@ -234,7 +257,7 @@ channelsRouter.post(
 
     ctx.status = result ? 200 : 400;
     ctx.body = result ?? "Fail";
-  }
+  },
 );
 
 /* ============================
@@ -252,7 +275,7 @@ channelsRouter.post(
 
     ctx.status = result ? 200 : 400;
     ctx.body = result ?? "Fail";
-  }
+  },
 );
 
 module.exports = channelsRouter;

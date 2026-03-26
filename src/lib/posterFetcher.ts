@@ -43,6 +43,20 @@ class PosterFetcher {
     });
   }
 
+  put<K, T>(
+    path: string,
+    data: K,
+    config: AxiosRequestConfig<any> | undefined = {}
+  ): Promise<AxiosResponse<T>> {
+    return this.fetcher.put(path, data, {
+      ...config,
+      headers: {
+        ...(config.headers || {}),
+        Authorization: `Bearer ${this.token}`,
+      },
+    });
+  }
+
   patch<K, T>(
     path: string,
     data: K,

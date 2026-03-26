@@ -1,7 +1,8 @@
 import { Context } from "koa";
 import authMiddleware from "../middlewares/auth-middleware";
-import { askAI, askGeminiAI, askGeminiAIStream } from "../services/ai";
+import { askGeminiAI, askGeminiAIStream } from "../services/ai";
 import { getArticleShortVersion } from "../services/short-article";
+import { createPostFromUrl } from "../services/post-creator";
 
 const Router = require("koa-router");
 const koaBody = require("koa-bodyparser");
@@ -83,12 +84,11 @@ ${content}`;
 );
 
 suggestionRouter.post("/short-article", koaBody(), async (ctx: Context) => {
-  const { url, title } = ctx.request.body as {
+  const { url } = ctx.request.body as {
     url: string;
-    title: string;
   };
 
-  let result = await getArticleShortVersion(url, title);
+  let result = await getArticleShortVersion(url);
   if (!result) {
     ctx.status = 503;
     ctx.body = {
@@ -100,5 +100,34 @@ suggestionRouter.post("/short-article", koaBody(), async (ctx: Context) => {
   ctx.status = 200;
   ctx.body = result;
 });
+
+suggestionRouter.post(
+  "/create-post",
+  koaBody(),
+  authMiddleware,
+  async (ctx: Context) => {
+    const { url, prompt, systemContent } = ctx.request.body as {
+      url: string;
+      prompt: string;
+      systemContent?: string;
+    };
+
+    if (!url || !prompt) {
+      ctx.status = 400;
+      ctx.body = { error: true, details: "Missing url or prompt" };
+      return;
+    }
+
+    const result = await createPostFromUrl(url, prompt, systemContent);
+    if (!result) {
+      ctx.status = 503;
+      ctx.body = { error: true, details: "Failed to create post" };
+      return;
+    }
+
+    ctx.status = 200;
+    ctx.body = result;
+  }
+);
 
 export default suggestionRouter;

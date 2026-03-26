@@ -6,6 +6,8 @@ const config = require("../config").default;
 const usersCollection = "users";
 const promptsCollection = "prompts";
 const botsCollection = "bots";
+const aiJobsCollection = "ai_jobs";
+const rssJobsCollection = "rss_jobs";
 
 class DataBase {
   pb: any;
@@ -25,9 +27,10 @@ class DataBase {
       process.env.PB_ADMIN_PASSWORD,
       {
         autoRefreshThreshold: 30 * 60,
-      }
+      },
     );
     console.log("inited");
+    await this.ensureAiJobsCollection();
   }
 
   public async updateUser(userId: string, data: unknown) {
@@ -104,7 +107,7 @@ class DataBase {
           updatedAt: bot.updated,
           config: null,
         };
-      })
+      }),
     );
 
     return bots;
@@ -168,7 +171,7 @@ class DataBase {
 
   async updateBot(
     id: string,
-    data: Partial<{ name: string; apiUrl: string; token: string }>
+    data: Partial<{ name: string; apiUrl: string; token: string }>,
   ) {
     const record = await this.pb.collection(botsCollection).update(id, data);
     return {
@@ -190,6 +193,97 @@ class DataBase {
     return this.pb
       .collection("channels")
       .getFullList({ filter: "platform='telegram'" });
+  }
+
+  private async ensureAiJobsCollection() {
+    // const schema = [
+    //   { name: "jobId", type: "text", required: true },
+    //   { name: "channelId", type: "text", required: true },
+    //   { name: "status", type: "text", required: true },
+    //   { name: "error", type: "text", required: false },
+    // ];
+    // try {
+    //   const existing = await this.pb.collections.getOne(aiJobsCollection);
+    //   const existingFields = new Set(
+    //     (existing.schema || []).map((f: any) => f.name),
+    //   );
+    //   const missingFields = schema.filter((f) => !existingFields.has(f.name));
+    //   if (missingFields.length > 0) {
+    //     await this.pb.collections.update(existing.id, {
+    //       schema: [...(existing.schema || []), ...missingFields],
+    //     });
+    //     console.log(
+    //       `Collection '${aiJobsCollection}' updated with fields: ${missingFields.map((f) => f.name).join(", ")}`,
+    //     );
+    //   }
+    // } catch {
+    //   await this.pb.collections.create({
+    //     name: aiJobsCollection,
+    //     type: "base",
+    //     schema,
+    //   });
+    //   console.log(`Collection '${aiJobsCollection}' created`);
+    // }
+  }
+
+  async createJob(jobId: string, channelId: string): Promise<any> {
+    return this.pb.collection(aiJobsCollection).create({
+      jobId,
+      channelId,
+      status: "processing",
+      error: "",
+    });
+  }
+
+  async getLatestJob(channelId: string): Promise<any | null> {
+    try {
+      const records = await this.pb.collection(aiJobsCollection).getList(1, 1, {
+        sort: "-created",
+        filter: `channelId = "${channelId}"`,
+      });
+      return records.items.length > 0 ? records.items[0] : null;
+    } catch (e) {
+      console.error("getLatestJob error:", e);
+      return null;
+    }
+  }
+
+  async updateJob(
+    id: string,
+    data: { status: string; error?: string },
+  ): Promise<any> {
+    return this.pb.collection(aiJobsCollection).update(id, data);
+  }
+
+  async createRssJob(jobId: string, channelId: string): Promise<any> {
+    return this.pb.collection(rssJobsCollection).create({
+      jobId,
+      channelId,
+      status: "processing",
+      error: "",
+    });
+  }
+
+  async getLatestRssJob(channelId: string): Promise<any | null> {
+    try {
+      const records = await this.pb
+        .collection(rssJobsCollection)
+        .getList(1, 1, {
+          sort: "-created",
+          filter: `channelId = "${channelId}"`,
+        });
+      return records.items.length > 0 ? records.items[0] : null;
+    } catch (e) {
+      console.error("getLatestRssJob error:", e);
+      return null;
+    }
+  }
+
+  async updateRssJob(
+    id: string,
+    data: { status: string; error?: string },
+  ): Promise<any> {
+    return this.pb.collection(rssJobsCollection).update(id, data);
   }
 }
 

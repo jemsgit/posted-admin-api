@@ -7,10 +7,19 @@ export type ContentType =
   | "rss-list"
   | "rss-result";
 
+export interface AIRules {
+  prompt: string;
+  system: string;
+  temperature: number;
+}
+
 export interface Channel {
   username: string;
   description?: string;
+  postExamples?: string[];
+  summaryRules?: AIRules;
   active: boolean;
+  language?: string;
   graberSettings?: {
     modulePath: string;
     times: string;
@@ -42,6 +51,9 @@ interface ChannelInfoDTO {
   channelId: string;
   description?: string;
   active: boolean;
+  postExamples: string[];
+  language?: string;
+  summaryRules?: AIRules;
 }
 
 interface GrabberInfoDTO {

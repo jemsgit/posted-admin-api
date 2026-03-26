@@ -49,3 +49,42 @@ export async function getPageContent(url: string) {
   if (!body) return null;
   return parseArticle(url, body);
 }
+
+export async function getFullPageInfo(
+  url: string
+): Promise<{
+  title: string | null;
+  description: string | null;
+  content: string | null;
+}> {
+  const { selector, body } = await getPage(url);
+
+  let title: string | null = null;
+  let description: string | null = null;
+  let content: string | null = null;
+
+  if (selector) {
+    title = getTitle(selector) || null;
+    description = getDescription(selector) || null;
+  }
+
+  if (body) {
+    content = await parseArticle(url, body);
+  }
+
+  if (!content) {
+    // fallback to fetching/parsing page content separately
+    content = await getPageContent(url);
+  }
+  return { title, description, content };
+}
+
+export function getTitle($: cheerio.CheerioAPI): string | null {
+  return (
+    $("meta[property='og:title']").attr("content") ||
+    $("meta[name='twitter:title']").attr("content") ||
+    $("title").text() ||
+    $("h1").first().text() ||
+    null
+  );
+}

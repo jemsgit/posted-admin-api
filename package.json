@@ -4,10 +4,11 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "start:dev": "npx nodemon",
+    "start": "npx nodemon",
     "build": "npx tsc"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.80.0",
     "@google/generative-ai": "^0.24.1",
     "@koa/cors": "^5.0.0",
     "@mozilla/readability": "^0.6.0",

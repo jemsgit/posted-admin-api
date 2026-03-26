@@ -2,9 +2,12 @@ import { parseJwt } from "../utils/jwt";
 
 function isExpired(db: any) {
   const token = db.pb?.authStore?.token;
+  console.log("token is expired");
   if (!token) return true;
 
   const payload = parseJwt(token);
+
+  console.log(payload);
 
   if (!payload?.exp) return true;
 

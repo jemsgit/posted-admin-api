@@ -19,11 +19,11 @@ import {
 } from "../models/grabber";
 
 export async function getChannelInfoById(
-  channelId: string
+  channelId: string,
 ): Promise<Channel | { error: boolean }> {
   try {
     let res = await posterFetcher.get<ChannelDTO>(
-      `/api/channels/info/${channelId}`
+      `/api/channels/info/${channelId}`,
     );
     return channelInfoMapper(res.data);
   } catch (e) {
@@ -50,7 +50,7 @@ export async function getChannelsList(): Promise<
 
 export async function getChannelContentById(
   channelId: string,
-  type: string
+  type: string,
 ): Promise<ResponseContentDTO | { error: boolean }> {
   try {
     let result = await posterFetcher.get<ResponseContentDTO>(
@@ -58,7 +58,7 @@ export async function getChannelContentById(
       {
         channelId,
         type,
-      }
+      },
     );
     return result.data;
   } catch (e) {
@@ -69,10 +69,27 @@ export async function getChannelContentById(
   }
 }
 
+export async function replaceChannelContentById(
+  channelId: string,
+  type: string,
+  content: string,
+): Promise<string | { error: boolean }> {
+  try {
+    await posterFetcher.put<RequestContentDTO, ResponseContentDTO>(
+      "/api/channels/content",
+      { channelId, type, content },
+    );
+    return "Ok";
+  } catch (e) {
+    console.log(e);
+    return { error: true };
+  }
+}
+
 export async function updateChannelContentById(
   channelId: string,
   type: string,
-  content: string
+  content: string,
 ): Promise<string | { error: boolean }> {
   try {
     let result = await posterFetcher.patch<
@@ -94,14 +111,14 @@ export async function updateChannelContentById(
 
 export async function updateChannelSettings(
   channelId: string,
-  params: any
+  params: any,
 ): Promise<string | { error: boolean }> {
   try {
     await posterFetcher.patch<RequestUpdateSettingsDTO, boolean>(
       `/api/channels/info/${channelId}/`,
       {
         params,
-      }
+      },
     );
     return "Ok";
   } catch (e) {
@@ -115,7 +132,7 @@ export async function updateChannelSettings(
 export async function copyContentToChannel(
   channelId: string,
   type: string,
-  content: string
+  content: string,
 ): Promise<string | { error: boolean }> {
   try {
     await posterFetcher.patch<RequestContentDTO, ResponseContentDTO>(
@@ -124,7 +141,7 @@ export async function copyContentToChannel(
         channelId,
         type,
         content,
-      }
+      },
     );
     return "Ok";
   } catch (e) {
@@ -136,11 +153,11 @@ export async function copyContentToChannel(
 }
 
 export async function getChannelGrabber(
-  channelId: string
+  channelId: string,
 ): Promise<GrabberFilesResponse | { error: boolean }> {
   try {
     let result = await posterFetcher.get<GrabberFilesResponse>(
-      `/api/channels/grabbers/${channelId}`
+      `/api/channels/grabbers/${channelId}`,
     );
     return result.data;
   } catch (e) {
@@ -152,12 +169,12 @@ export async function getChannelGrabber(
 }
 
 export async function testChannelGrabber(
-  channelId: string
+  channelId: string,
 ): Promise<GrabberContentResponseDTO | { error: boolean }> {
   try {
     let result = await posterFetcher.post<unknown, GrabberContentResponseDTO>(
       `/api/channels/test-grab/${channelId}`,
-      {}
+      {},
     );
     console.log(result);
     return result.data;
@@ -171,12 +188,12 @@ export async function testChannelGrabber(
 
 export async function setChannelActiveStatus(
   channelId: string,
-  isActive: boolean
+  isActive: boolean,
 ): Promise<string | { error: boolean }> {
   try {
     await posterFetcher.post<{ active: boolean }, void>(
       `/api/channels/${channelId}/set-active`,
-      { active: isActive }
+      { active: isActive },
     );
     return "Ok";
   } catch (e) {
@@ -188,12 +205,12 @@ export async function setChannelActiveStatus(
 }
 
 export async function forcePostForChannel(
-  channelId: string
+  channelId: string,
 ): Promise<string | { error: boolean }> {
   try {
     await posterFetcher.post<any, void>(
-      `/api/channels/${channelId}/force-post`,
-      {}
+      `/api/channels/force-post/${channelId}`,
+      {},
     );
     return "Ok";
   } catch (e) {

@@ -11,6 +11,8 @@ const promptsRouter = require("./routes/prompts");
 const suggestionRouter = require("./routes/suggestion").default;
 const utilsRouter = require("./routes/utils").default;
 const botsRouter = require("./routes/bots").default;
+const aiRouter = require("./routes/ai").default;
+const rssRouter = require("./routes/rss").default;
 
 db.init();
 
@@ -30,7 +32,9 @@ app
   .use(promptsRouter.routes())
   .use(suggestionRouter.routes())
   .use(utilsRouter.routes())
-  .use(botsRouter.routes());
+  .use(botsRouter.routes())
+  .use(aiRouter.routes())
+  .use(rssRouter.routes());
 
 app.listen(process.env.PORT || 3001, () => {
   console.log("server started");
