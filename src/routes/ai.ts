@@ -17,10 +17,12 @@ aiRouter.post(
   koaBody(),
   authMiddleware,
   async (ctx: Context) => {
-    const { channelId, articlesLimit, topCount } = ctx.request.body as {
+    const { channelId, articlesLimit, topCount, isDraft } = ctx.request
+      .body as {
       channelId?: string;
       articlesLimit?: number;
       topCount?: number;
+      isDraft?: boolean;
     };
 
     if (!channelId) {
@@ -43,7 +45,7 @@ aiRouter.post(
     (async () => {
       try {
         console.log(channelId);
-        await runArticlePipeline(channelId, articlesLimit, topCount);
+        await runArticlePipeline(channelId, articlesLimit, topCount, isDraft);
         await db.updateJob(job.id, { status: "success" });
       } catch (e: any) {
         console.error("Article pipeline error:", e);

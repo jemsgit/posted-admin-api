@@ -120,8 +120,12 @@ function linkMessageParseTg(postData: string) {
 async function fetchArticles(
   channelId: string,
   limit?: number,
+  draftSource = true,
 ): Promise<Article[]> {
-  let channelData = await getChannelContentById(channelId, "draft");
+  let channelData = await getChannelContentById(
+    channelId,
+    draftSource ? "draft" : "main",
+  );
 
   if ("error" in channelData) {
     throw Error("NO content");
@@ -272,7 +276,7 @@ async function generateSummaries(
       channelRules,
       service,
     );
-    const text = `${summary}${a.image ? ` ${a.image}` : ""}${a.video ? ` ${a.video}` : ""}`;
+    const text = `${summary}${a.image ? ` [img-at](${a.image})` : ""}${a.video ? ` [video-at](${a.video})` : ""}`;
     results.push({ url: a.url, summary: text });
   }
   return results;
@@ -314,6 +318,7 @@ export async function runArticlePipeline(
   channelId: string,
   articlesLimit?: number,
   topCount?: number,
+  draftSource = true,
 ): Promise<void> {
   const channelInfoResult = await getChannelInfoById(channelId);
   if ("error" in channelInfoResult) {
@@ -323,7 +328,7 @@ export async function runArticlePipeline(
   const channelLang = channelInfoResult.language ?? "russian";
   const summaryRules = channelInfoResult.summaryRules;
 
-  const raw = await fetchArticles(channelId, articlesLimit);
+  const raw = await fetchArticles(channelId, articlesLimit, draftSource);
   const filtered = preFilter(raw);
   const scored = await scoreAllArticles(filtered, channelDescription, service);
   const top = scored
